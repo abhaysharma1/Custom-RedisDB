@@ -1,0 +1,10 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+# This ensures the brace stays on the same line as the function/class/struct
+BreakBeforeBraces: Attach
+# Sets the indentation width (standard is 2 or 4)
+IndentWidth: 4
+# Ensure the column limit doesn't force a break you don't want
+ColumnLimit: 100
+---
