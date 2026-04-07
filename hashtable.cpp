@@ -5,7 +5,7 @@
 
 // hashtable inititlization and safety checks
 static void h_init(HTab* htab, size_t n) {
-    assert(n > 0 && ((n - 1) & n == 0));
+    assert(n > 0 && (((n - 1) & n) == 0));
     htab->tab = (HNode**)calloc(n, sizeof(HNode*));
     htab->mask = n - 1;
     htab->size = 0;
@@ -121,15 +121,31 @@ HNode* hm_delete(HMap* hmap, HNode* key, bool (*eq)(HNode*, HNode*)) {
     return NULL;
 }
 
-
 // delete the table
-void hm_clear(HMap *hmap){
+void hm_clear(HMap* hmap) {
     free(hmap->newer.tab);
     free(hmap->older.tab);
     *hmap = HMap{};
 }
 
 // return total size of the current table
-size_t hm_size(HMap *hmap){
-    return hmap->newer.size + hmap->older.size;
+size_t hm_size(HMap* hmap) { return hmap->newer.size + hmap->older.size; }
+
+static bool h_foreach(HTab* htab, bool (*f)(HNode*, void*), void* arg) {
+    for (size_t i = 0; htab->mask != 0 && i <= htab->mask; i++) {  // looping through the table
+        for (HNode* node = htab->tab[i]; node != NULL;  node = node->next) {  // looping throught linked List in the table
+            if (!f(node, arg)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void hm_foreach(HMap* hmap, bool (*f)(HNode*, void*), void* arg) {
+    // && is so that if the left side is false the right side is never executed
+    // this in actual does it so that
+    // if we fail to write a key to the output buffer from the newer table we never start reading
+    // the old table
+    h_foreach(&hmap->newer, f, arg) && h_foreach(&hmap->older, f, arg);
 }
